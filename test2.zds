@@ -1,0 +1,9 @@
+
+label mylabel
+    goto anotherlabel {bleh == 4}
+    {ab if a == 1 f'{123+4}'
+    else 42}
+    option ab
+
+label anotherlabel:
+    line boss "hello there"
