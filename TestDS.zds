@@ -1,90 +1,57 @@
-if true && "ab" + 2.5
-label mylabel
+line speaker text_expr
+option text_expr
 
-@ mylabel
--> bleh
+label label_id
+goto label_expr
 
-goto _abc
--> abc23_che {abcd}
+code python_simple_stmt
 
-{
-}
-    
-
-command : assignment | function | import
-line : (name | string) (string | COLON NEWLINE block)
-    label : name | (name COLON NEWLINE block)
-    label
-goto
-call
-
-line playerchar "Hello."
-
-goto meet_npc
-
-@ meet_npc
-    @ firsttime {!met_player}
-        line npc "Hi.  What's your name?"
-        line player "{player}."
-        line npc "Nice to meet you, {player}."
-        goto main
-
-    @ notfirsttime
-        line npc {player_rep < 1} "What do you want?" #angry #lowrep
-        line npc {player_rep <= 5} "Oh, it's you, {player}!" #neutral
-        line npc {player_rep > 5} "Good to see you again, {player}!" #friendly #highrep
-
-@ main
-
-line
-label
-goto
-visit
-option
-script
-
-option {player_rep > 5} "Can I have some money?"
-option "Bye for now."
-
-say : say_simple | say_compound
-say_simple : "say" speaker const_string ("if" expr) (tag)*
-say_compound : say_decl say_block
-say_decl : "say" speaker ("if" expr) (tag)* COLON NEWLINE say_block
-say_block : 
-goto_simple : "goto" (id_label | expr) ("if" expr)
-speaker: (const_string | expr)
-
-say npc "some text"
-say {npcname} "some text"
-say npc {dynamic_text}
-
-say npc "some text" if {False}
-say npc "some text" if {False} #tag1 #tag2
-
-say npc:
-    "some text" if {boolexp}
-    "other text" if {boolexp}
+map iterable_expr into variable_id:
 
 
-statment1 : keyword (args) (if {expr}) (tag)* (| statement1)*
+line:
+    speaker text_expr
+    speaker text_expr
+    ...
 
-option "option 1" | python seeifshitisreal() | goto mylabel if {shitisreal}
-option "option 2" | goto anotherlabel if {not shitisreal} | 
-option "option 1":
-    python seeifshitisreal()
-    goto mylabel if {shitisreal}
+line speaker:
+    text_expr
+    text_expr
+    ...
 
-option:
-    "option 1" | python seeifshitisreal() | goto mylabel if {shitisreal}
 
-python {
-    // ajdos
+code:
+    code_block
 
-    def myfunc():
-        fucku
-        return 0
-        
-}
+
+stmt_tail : (if_clause)? (tag)*
+if_clause : "if" {expr}
+
+label_stmt : "label" label_id
+speaker_expr : const_string | variable_id | {expr}
+
+code_stmt : "code" python_simple_stmt
+goto_stmt : "goto" label_id
+option_stmt : "option" text_expr
+
+line_partial0 : "line"
+line_partial1 : "line" speaker_expr
+line_completion0 : speaker_expr text_expr
+line_completion1 : text_expr
+line_stmt : (line_partial0 line_completion0) | (line_partial1 line_completion1)
+
+line_block : line_stmt (stmt_tail)? ":" NEWLINE INDENT statement+ DEDENT
+line_block0 : line_partial0 (stmt_tail)? ":" NEWLINE INDENT (line_completion0 (stmt_tail)? | statement)+ DEDENT
+
+option_partial : "option"
+
+simple_stmt : (label_stmt | goto_stmt | line_stmt | option_stmt | code_stmt | map_stmt) (stmt_tail)?
+stmt_list : simple_stmt ("|" simple_stmt)*
+statement : stmt_list NEWLINE | compound_stmt
+
+
+
+suite : NEWLINE INDENT statement+ DEDENT
 
 ////////
 @

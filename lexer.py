@@ -1,35 +1,27 @@
 # %%
 import re
-
-
-class Token:
-
-    def __init__(self, tokentype, value=None, position=None) -> None:
-        self.tokentype = tokentype
-        self.value = value
-        self.position = position or tuple()
-
-    def __repr__(self) -> str:
-        return f'Token(tokentype={self.tokentype}, value="{self.value}")'
-
-    def __str__(self) -> str:
-        return self.__repr__()
+from tokens import TokenType, Token
 
 
 class Lexer:
 
-    _keywords = {
-        'line ': ('LINE', 'line'),
-        'label ': ('LABEL', 'label'),
-        'goto ': ('GOTO', 'goto'),
-        'option ': ('OPTION', 'option'),
-        'python ': ('PYTHON', 'python'),
-        '->': ('GOTO', '->'),
-        '-': ('LINE', '-'),
-        '@': ('LABEL', '@'),
-        '*': ('OPTION', '*'),
-        '$': ('PYTHON', '$'),
-        ':': ('COLON', ':')
+    WORDS = {
+        'line ': TokenType.LINE,
+        'label ': TokenType.LABEL,
+        'goto ': TokenType.GOTO,
+        'option ': TokenType.OPTION,
+        'code ': TokenType.CODE,
+        'if ': TokenType.IF,
+        '->': TokenType.GOTO,
+        '-': TokenType.LINE,
+        '@': TokenType.LABEL,
+        '*': TokenType.OPTION,
+        '$': TokenType.CODE,
+        ':': TokenType.COLON,
+        ';': TokenType.SEMI,
+        '|': TokenType.PIPE,
+        'map ': TokenType.MAP,
+        '.': TokenType.DOT
     }
 
     def __init__(self) -> None:
@@ -57,8 +49,7 @@ class Lexer:
         return self.currline[self.col:] + '\n' + '\n'.join(ln for ln in self.lines[self.row + 1:])
 
     def tokenize(self, instr: str) -> list[Token]:
-        self.lines = [ln for ln in instr.split('\n')
-                      if re.search(r'.+', ln)]
+        self.lines = instr.split('\n')
 
         self.row = 0
         self.col = 0
@@ -72,9 +63,12 @@ class Lexer:
     def _next_token(self):
 
         if self.col == 0:
+            if not self.currline.strip():
+                self._advance(len(self.currline))
+                return
             self._get_indent()
 
-        if self.rtext().startswith(tuple(self._keywords)):
+        if self.rtext().startswith(tuple(self.WORDS)):
             self._get_word()
             return
 
@@ -94,24 +88,24 @@ class Lexer:
             self._advance()
             return
 
-        self.throw('Unexpected token.')
+        self.throw(f"Unexpected token: '{self.currchar}'.")
 
     def throw(self, message=''):
         raise ValueError(
             f"Line {self.row+1} ({self.col+1}): {message}"
         )
 
-    def _add_token(self, tokentype, value=None):
-        print(f'Adding token {tokentype} position {(self.row+1, self.col+1)}')
+    def _add_token(self, tokentype: TokenType, value: str = ''):
         self.tokens.append(Token(tokentype, value, (self.row+1, self.col+1)))
 
     def _advance(self, steps=1):
         self.col += steps
 
         while self.col >= len(self.currline):
-            print(f'col: {self.col}')
             self.col -= len(self.currline)
             self.row += 1
+            self._add_token(TokenType.NEWLINE)
+
             if self.row >= len(self.lines):
                 return
 
@@ -119,22 +113,22 @@ class Lexer:
         indent = re.search(r'^ *', self.currline).end()
 
         if indent != self.indent:
-            self._add_token('INDENT'
+            self._add_token(TokenType.INDENT
                             if indent > self.indent
-                            else 'UNINDENT')
+                            else TokenType.DEDENT)
             self.indent = indent
 
             self._advance(indent)
 
     def _get_word(self):
-        for keyword, tokenargs in self._keywords.items():
+        for keyword, tokentype in self.WORDS.items():
             if self.rtext().startswith(keyword):
-                self._add_token(*tokenargs)
+                self._add_token(tokentype, keyword.strip())
                 self._advance(len(keyword))
                 return
 
         value = re.search(r'^[_a-zA-Z]+[_a-zA-Z0-9]*', self.rtext()).group()
-        self._add_token('NAME', value)
+        self._add_token(TokenType.ID, value)
         self._advance(len(value))
         return
 
@@ -143,7 +137,7 @@ class Lexer:
         if match:
             value = re.search(
                 r'^([\'"])(([^\1\\]|\\.)*?)\1', self.rtext(strip=True)).group()
-            self._add_token('STRING', value[1:-1])
+            self._add_token(TokenType.STRING, value[1:-1])
             self._advance(len(match.group()))
             return
         else:
@@ -155,7 +149,7 @@ class Lexer:
 
         if lbrackets < len(units):
             expr = '}'.join(units[:lbrackets]) + '}'
-            self._add_token('EXPR', expr[1:-1])
+            self._add_token(TokenType.EXPR, expr[1:-1].replace('\n', ' '))
             self._advance(len(expr))
             return
 
