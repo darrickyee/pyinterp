@@ -1,68 +1,8 @@
-line speaker text_expr
-option text_expr
+line 'speaker' 'hello'
 
-label label_id
-goto label_expr
+- npc1 'oh sure' if {met}:
+    - me 'Go fuck yourself'
+@ Main if {ok}:
+    - npc1 'hi' if {shit == 2}
 
-code python_simple_stmt
-
-map iterable_expr into variable_id:
-
-
-line:
-    speaker text_expr
-    speaker text_expr
-    ...
-
-line speaker:
-    text_expr
-    text_expr
-    ...
-
-
-code:
-    code_block
-
-
-stmt_tail : (if_clause)? (tag)*
-if_clause : "if" {expr}
-
-label_stmt : "label" label_id
-speaker_expr : const_string | variable_id | {expr}
-
-code_stmt : "code" python_simple_stmt
-goto_stmt : "goto" label_id
-option_stmt : "option" text_expr
-
-line_partial0 : "line"
-line_partial1 : "line" speaker_expr
-line_completion0 : speaker_expr text_expr
-line_completion1 : text_expr
-line_stmt : (line_partial0 line_completion0) | (line_partial1 line_completion1)
-
-line_block : line_stmt (stmt_tail)? ":" NEWLINE INDENT statement+ DEDENT
-line_block0 : line_partial0 (stmt_tail)? ":" NEWLINE INDENT (line_completion0 (stmt_tail)? | statement)+ DEDENT
-
-option_partial : "option"
-
-simple_stmt : (label_stmt | goto_stmt | line_stmt | option_stmt | code_stmt | map_stmt) (stmt_tail)?
-stmt_list : simple_stmt ("|" simple_stmt)*
-statement : stmt_list NEWLINE | compound_stmt
-
-
-
-suite : NEWLINE INDENT statement+ DEDENT
-
-////////
-@
--
-->
-*
-simple_stmt : (label_stmt | say_stmt | goto_stmt | option_stmt ) (condition) (tag)*
-stmt_list : _* simple_stmt ("|" simple_stmt)*
-statement : stmt_list NEWLINE | compound_stmt
-
-label_stmt : "label" literal_str
-say_stmt : "say" id_speaker text_str
-goto_stmt : "goto" id_label
-option_stmt : "option" text_str
+- {player} 'ok then' if {shit == 1}

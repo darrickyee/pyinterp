@@ -1,6 +1,43 @@
+label mylabel
+@mylabel if {shit}
+@ mylabel ['hi' 'ok']
 
-label :
-    goto anotherlabel if {bleh == 4}
-    {ab if a == 1
-    else 42}
-    option ab
+goto mylabel
+->mylabel
+-> mylabel
+
+line myline
+-myline
+- myline
+
+option "myoption"
+*"myoption"
+* "myoption"
+
+code somecode
+$somecode
+$ somecode
+
+line {speaker} "text {expressionhere}" | goto nowhere
+    hello
+        ffs
+    ok
+line speaker "some text" if {buh} 'tag-1':
+    label nolabel
+    option "a {x==44}"
+
+code x = 42; print(f'x is {x}')
+
+option:
+    "Shit" if {a == 1} | -> ShitLabel
+    "Dump" if {a == 2} | -> DumpLabel
+    "Nothing" | -> End
+
+label .:
+    option "Shit" if {a == 1}:
+        -> ShitLabel
+    option "Dump" if {a == 2}:
+        -> DumpLabel
+    option "Nothing" | -> End
+
+line npc:

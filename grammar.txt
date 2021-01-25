@@ -1,0 +1,34 @@
+script : statement* ENDMARKER
+statement : stmt_list NEWLINE | compound_stmt
+compound_stmt : stmt_head suite
+suite : NEWLINE INDENT statement+ DEDENT
+
+stmt_list : single_stmt (CONCAT single_stmt)*
+single_stmt : simple_stmt tags? if_clause?
+tags : LBRACKET STRING+ RBRACKET
+if_clause : IF EXPR
+
+stmt_head : single_stmt COLON
+
+line_stmt : LINE str_expr str_expr
+option_stmt : OPTION str_expr
+goto_stmt : GOTO str_expr
+simple_stmt : (line_stmt | option_stmt | goto_stmt)
+statement : single_stmt (CONCAT single_stmt)* NEWLINE
+
+line_block: line_stmt COLON NEWLINE (INDENT statement)+ DEDENT
+line_part0 : LINE
+line_part1 : LINE text_expr
+
+str_expr : STRING | EXPR | NAME
+
+left: line chunk
+left = stmt(bp(IF)) + left
+stmt(bp(IF)):
+    left = if chunk
+    left = stmt(bp(SUITE)) + left
+    stmt(bp(SUITE)):
+        return line chunk2
+
+    left = if chunk + line chunk2
+left = line chunk + if chunk + link chunk2

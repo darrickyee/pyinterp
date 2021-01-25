@@ -1,0 +1,36 @@
+$ player = 'MC'
+$ npc1 = 'Bob'
+$ npc2 = 'Joe'
+$ met = False
+
+@ Start if {met == False}
+
+    $ met = True
+    line npc1 'Hi. What\'s your name?'
+    line player 'I\'d rather not say.' if {shy == True} ['shy']
+    line player '{player}.' if {shy == False} ['bold']
+    line npc1 'Nice to meet you, {player}!'
+
+- npc1 'What class do you want to be?'
+
+option 'Fighter!' | $ pclass = 'fighter'
+option 'Rogue!' | $ pclass = 'rogue'
+option 'Wizard!' | $ pclass = 'wizard'
+
+- npc1 "You're under attack!  What will you do?"
+
+option 'Bash them!' if {pclass=='fighter'}
+option 'Stab them!' if {pclass=='rogue'}
+option 'Roast them!' if {pclass=='wizard'}
+option 'Nothing.' | -> Die
+
+@ Die
+
+- . 'You died.'
+
+line npc1 'do something' | $ shit = 23*5 + 2.3 % 1 | -> somewhere
+
+line npc1 'do something'
+@ .
+    $ shit = 23
+    -> somewhere
