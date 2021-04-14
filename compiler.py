@@ -18,7 +18,7 @@ class ScriptSyntaxError(SyntaxError):
 STMT_ARGS = {
     T.LABEL: 1,
     T.LINE: 2,
-    T.OPTION: 1,
+    T.CHOICE: 1,
     T.GOTO: 1
 }
 
@@ -27,14 +27,14 @@ STMT_INSTR = {
     T.LINE: IType.EXEC_LINE,
     T.GOTO: IType.EXEC_GOTO,
     T.LABEL: IType.LABEL,
-    T.OPTION: IType.EXEC_LINE
+    T.CHOICE: IType.EXEC_LINE
 }
 
 STMT_DEF = {
     T.LINE: ('_line', 2),
     T.GOTO: ('_goto', 1),
     T.LABEL: ('_label', 1),
-    T.OPTION: ('_option', 1)
+    T.CHOICE: ('_option', 1)
 }
 
 
@@ -62,10 +62,12 @@ class Compiler:
         self.instructions.clear()
         self._script()
 
-    def consume(self, tokentype: T):
-        if self.currtoken.type == tokentype:
+    def consume(self, tokentype: T, *others: T):
+        # print(f'Token: {self.currtoken}')
+        if self.currtoken.type in [tokentype, *others]:
+            tk = self.currtoken
             self.position += 1
-            return
+            return tk
 
         self.error()
 
@@ -78,7 +80,7 @@ class Compiler:
     def error(self, msg: str = ''):
         row, col = self.currtoken.position
         raise ScriptSyntaxError(
-            f"Line {row+1} ({col+1}), at '{self.currtoken.value}': {msg or 'Invalid syntax'} [{self.position}: {self.currtoken}]")
+            f"Line {row} ({col}), at '{self.currtoken.value}': {msg or 'Invalid syntax'} [{self.position}: {self.currtoken}]")
 
     # =========================
 
@@ -91,19 +93,19 @@ class Compiler:
             self.instructions.extend(self._statement())
 
     def _statement(self):
+
+        if self.currtoken.type == T.CHOICE:
+            return self._option()
+
         chunk = self._simple_stmt()
-        if self.currtoken.type == T.IF:
-            self.consume(T.IF)
 
-            cond = I(IType.OP_EXPR, (self.currtoken.value, ))
-            self.consume(T.EXPR)
+        for fn in self._tags, self._ifclause:
+            if self.currtoken.type == T.NEWLINE:
+                self.consume(T.NEWLINE)
+                return chunk
 
-            chunk = chunk + self._suite()
-            chunk = [cond, I(IType.OP_JUMP_FALSE, (len(chunk)+1, ))] + chunk
-        else:
-            self.consume(T.NEWLINE)
+            chunk = fn(chunk)
 
-        print(chunk)
         return chunk
 
     def _compound_stmt(self):
@@ -112,21 +114,9 @@ class Compiler:
     def _chunk(self):
         return [I(IType.EXEC_LINE)]
 
-    def stmt(self, bp=0):
-        left = self._chunk()
-        while bp < self._bp(self.currtoken.type):
-            left = self.stmt(PREC[self.currtoken.type]) + left
-
-        return left
-
-    def _bp(self, op: T):
-        return PREC[op]
-
-    def _led(self, left, op):
-        return left + self.stmt(self._bp(op))
-
-    def _suite(self):
-        chunk = list()
+    def _suite(self, left=None):
+        left = left or []
+        chunk = []
 
         if self.currtoken.type == T.COLON:
             try:
@@ -142,9 +132,11 @@ class Compiler:
             self.consume(T.DEDENT)
 
         elif self.currtoken.type == T.CONCAT:
-            while self.currtoken.type != T.NEWLINE:
+            while self.currtoken.type == T.CONCAT:
                 self.consume(T.CONCAT)
-                chunk.append(self._simple_stmt)
+                chunk.extend(self._simple_stmt())
+                chunk.extend(self._tags())
+                chunk.extend(self._ifclause())
 
             self.consume(T.NEWLINE)
 
@@ -153,88 +145,115 @@ class Compiler:
 
         return chunk
 
+    def _head(self):
+        
+
     def _simple_stmt(self):
         if (stmt := self.currtoken.type) in STMT_ARGS:
-            self.consume(stmt)
-
             method, *_ = STMT_DEF[stmt]
             return getattr(self, method)()
 
         self.error('Unrecognized statement.')
 
     def _line(self):
-        return [
-            self._str_expr(),
-            self._str_expr(),
-            I(IType.EXEC_LINE)
-        ]
+        self.consume(T.LINE)
+        spkr = self.consume(T.STRING, T.NAME, T.EXPR).value
+        text = self.consume(T.STRING, T.NAME, T.EXPR).value
+
+        return [I(IType.EXEC_LINE, (spkr, text))]
 
     def _label(self):
+        self.consume(T.LABEL)
         name = self.currtoken.value
         self.consume(T.NAME)
         self.instructions.append(I(IType.LABEL, (name,)))
         return []
 
-    def _str_expr(self):
-        toktype = self.currtoken.type
-        tokvalue = self.currtoken.value
+    def _option(self):
+        arglists = []
+        suites = []
+        while self.currtoken.type == T.CHOICE:
+            self.consume(T.CHOICE)
+            args = []
+            args.append(self.consume(T.STRING, T.NAME, T.EXPR).value)
 
-        if toktype in (T.EXPR, T.STRING, T.NAME):
-            instr = self.instruction(
-                IType.OP_EXPR, f'f{tokvalue}' if toktype == T.STRING else tokvalue)
-            self.consume(toktype)
-            return instr
+            tags = self._tags()
 
-        self.error('Expected an expression, name, or string.')
+            if self.currtoken.type == T.IF:
+                self.consume(T.IF)
+                args.append(self.consume(T.EXPR).value)
+            else:
+                args.append('True')
 
-    def _stmt_tail(self):
+            arglists.append(args)
+
+            suites.append(tags + self._suite() + ['TEMP_JUMP'])
+
+        out = []
+        for i, arglist in enumerate(arglists):
+            arglist.append(1 +
+                           sum(len(suite) for suite in suites[:i]))
+            out.append(I(IType.ADD_OPTION, tuple(arglist)))
+
+        out.append(I(IType.EXEC_OPTIONS))
+        total = sum(len(suite) for suite in suites) + len(out)
+        for suite in suites:
+            suite[-1] = I(IType.OP_JUMP, (
+                total - len(out) - len(suite) + 1, )
+            )
+            out.extend(suite)
+
+        return out
+
+    def _ifclause(self, left=None):
+        left = left or []
+        out = left
         if self.currtoken.type == T.IF:
-            self._ifclause()
+            self.consume(T.IF)
+            if not self.currtoken.type == T.EXPR:
+                self.error('Expected an expression.')
 
+            expr = self.consume(T.EXPR).value
+            suite = self._suite()
+
+            out = [I(IType.OP_JUMP_FALSE, (expr, len(
+                left) + len(suite) + 1))] + left + suite
+
+        return out
+
+    def _tags(self, left=None):
+        left = left or []
+        out = []
         if self.currtoken.type == T.LBRACKET:
-            self._tags()
+            self.consume(T.LBRACKET)
+            tags = []
+            while self.currtoken.type != T.RBRACKET:
+                tags.append(self.consume(T.STRING).value)
 
-        return
+            self.consume(T.RBRACKET)
+            out.append(I(IType.EXEC_TAGS, tuple(tags)))
 
-    def _ifclause(self):
-        self.consume(T.IF)
-        if not self.currtoken.type == T.EXPR:
-            self.error('Expected an expression.')
-
-        self.write(IType.OP_EXPR, self.currtoken.value)
-        self.consume(T.EXPR)
-
-        self.write(IType.OP_JUMP_FALSE, -1)
-        jumpstart = len(self.instructions) - 1
-
-        if self.currtoken.type == T.LBRACKET:
-            self._tags()
-
-        if self.currtoken.type in (T.CONCAT, T.COLON):
-            self.consume(T.COLON)
-            self._suite()
-        else:
-            self.consume(T.NEWLINE)
-
-        offset = len(self.instructions) - jumpstart
-        self.instructions[jumpstart] = (IType.OP_JUMP_FALSE, offset)
-
-    def _tags(self):
-        self.consume(T.LBRACKET)
-        tags = []
-        while self.currtoken.type != T.RBRACKET:
-            self._str_expr()
-
-        self.consume(T.RBRACKET)
-        self.write(IType.EXEC_TAGS, tuple(tags))
+        return left + out
 
 
 # %%
 c = Compiler()
 tkns = list(tokenize(open('TestDS.zds', 'r')))
+c.compile(tkns)
 # %%
 try:
     c.compile(tkns)
 finally:
     c.instructions
+
 # %%
+# line_stmt NEWLINE => exec_line
+# line_stmt tags NEWLINE => exec_tags exec_line
+# line_stmt ifclause NEWLINE => jumpif exec_line
+# line_stmt tags ifclause NEWLINE => jumpif exec_tags exec_line
+
+# line_stmt COLON stmt1 stmt2 DEDENT => exec_line stmt1 stmt2
+# line_stmt tags COLON stmt1 stmt2 DEDENT => tags exec_line stmt1 stmt2
+# line_stmt ifclause COLON stmt1 stmt2 DEDENT => ifclause exec_line stmt1 stmt2
+
+# option tags if COLON block => option(ifexpr, jump) (jumptgt)-> tags block

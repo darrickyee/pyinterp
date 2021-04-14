@@ -1,8 +1,19 @@
-line 'speaker' 'hello'
+choice 'fuckoffanddie'
+choice 'ok':
+    - 'something' 'hi'
+    - well 'ok'
+choice 'not ok' ['mytag'] if {g ==1} | line npc 'fu'
 
-- npc1 'oh sure' if {met}:
-    - me 'Go fuck yourself'
-@ Main if {ok}:
-    - npc1 'hi' if {shit == 2}
+- bob if {a == 4}:
+    'do something' if {b == 4}
+    'or else'
 
-- {player} 'ok then' if {shit == 1}
+label hi ['abc' '123']:
+    - bill:
+        'hallo there' | goto nowhere
+        'wat'
+        'well ok then'
+
+choice:
+    'nowai!' | goto hi
+    'fyne' | - 'bob' 'duh' if {name == 'Bob'} | goto nowhere

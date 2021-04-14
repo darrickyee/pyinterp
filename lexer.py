@@ -1,10 +1,11 @@
 # %%
+from token import DEDENT, ENDMARKER, INDENT, NEWLINE, STRING
 import tokenize as T
 from functools import singledispatch
 from io import TextIOBase
-from typing import Generator, Iterable
-from tokens import Token, TokenType
-
+from typing import Generator, Iterable, Union
+from tokens import Token, TokenType as TT
+# %%
 
 _BUILTINS: dict[tuple[int, str], str] = {
     (T.NAME, 'label'): 'LABEL',
@@ -13,10 +14,11 @@ _BUILTINS: dict[tuple[int, str], str] = {
     (T.OP, '->'): 'GOTO',
     (T.NAME, 'line'): 'LINE',
     (T.OP, '-'): 'LINE',
-    (T.NAME, 'option'): 'OPTION',
-    (T.OP, '*'): 'OPTION',
+    (T.NAME, 'choice'): 'CHOICE',
+    (T.OP, '*'): 'CHOICE',
     (T.NAME, 'map'): 'MAP',
     (T.OP, '**'): 'MAP',
+    (T.NAME, 'as'): 'AS',
     (T.OP, '{'): 'LBRACE',
     (T.OP, '}'): 'RBRACE',
     (T.NAME, 'code'): 'CODE',
@@ -28,29 +30,41 @@ _BUILTINS: dict[tuple[int, str], str] = {
     (T.OP, ']'): 'RBRACKET'
 }
 
-_TOKENMAP: dict[str, TokenType] = {
-    'LABEL': TokenType.LABEL,
-    'GOTO': TokenType.GOTO,
-    'LINE': TokenType.LINE,
-    'OPTION': TokenType.OPTION,
-    'MAP': TokenType.MAP,
-    'CODE': TokenType.CODE,
-    'COLON': TokenType.COLON,
-    'CONCAT': TokenType.CONCAT,
-    'IF': TokenType.IF,
-    'LBRACE': TokenType.LBRACE,
-    'RBRACE': TokenType.RBRACE,
-    'LBRACKET': TokenType.LBRACKET,
-    'RBRACKET': TokenType.RBRACKET,
-    'ENDMARKER': TokenType.END,
-    'NEWLINE': TokenType.NEWLINE,
-    'INDENT': TokenType.INDENT,
-    'DEDENT': TokenType.DEDENT,
-    'STRING': TokenType.STRING,
-    'NAME': TokenType.NAME,
-    'NL': TokenType.EMPTY,
-    'COMMENT': TokenType.EMPTY
+_MAP1: dict[tuple[int, str], tuple[TT, str]] = {
+    (T.NAME, 'label'): (TT.STATEMENT, 'label'),
+    (T.OP, '@'): (TT.STATEMENT, 'label'),
+    (T.NAME, 'goto'): (TT.STATEMENT, 'goto'),
+    (T.OP, '->'): (TT.STATEMENT, 'goto'),
+    (T.NAME, 'line'): (TT.STATEMENT, 'line'),
+    (T.OP, '-'): (TT.STATEMENT, 'line'),
+    (T.NAME, 'choice'): (TT.STATEMENT, 'choice'),
+    (T.OP, '*'): (TT.STATEMENT, 'choice'),
+    (T.NAME, 'map'): (TT.STATEMENT, 'map'),
+    (T.OP, '**'): (TT.STATEMENT, 'map'),
+    (T.NAME, 'as'): (TT.OPERATOR, 'as'),
+    (T.OP, '=>'): (TT.OPERATOR, 'as'),
+    (T.OP, '{'): (TT.OPERATOR, '{'),
+    (T.OP, '}'): (TT.OPERATOR, '}'),
+    (T.NAME, 'script'): (TT.STATEMENT, 'script'),
+    (T.ERRORTOKEN, '$'): (TT.STATEMENT, 'script'),
+    (T.OP, '|'): (TT.OPERATOR, '|'),
+    (T.OP, ':'): (TT.OPERATOR, ':'),
+    (T.NAME, 'if'): (TT.OPERATOR, 'if'),
 }
+
+_MAP2: dict[int, TT] = {
+    T.NUMBER: TT.CONSTANT,
+    T.STRING: TT.CONSTANT,
+    T.NAME: TT.NAME,
+    T.OP: TT.OPERATOR,
+    T.INDENT: TT.INDENT,
+    T.DEDENT: TT.DEDENT,
+    T.NEWLINE: TT.NEWLINE,
+    T.ENDMARKER: TT.END
+}
+
+# %%
+
 
 
 def _tokens(instr: str):
@@ -60,24 +74,37 @@ def _tokens(instr: str):
 
 def _map_token(token: T.TokenInfo):
     typeint, value, pos, *_ = token
-    typename = _BUILTINS.get((typeint, value), None) or T.tok_name[typeint]
+    typeval = _MAP1.get((typeint, value), None) or (
+        _MAP2.get(typeint, TT.UNKNOWN), value)
 
-    return Token(_TOKENMAP.get(typename, TokenType.UNKNOWN), value, pos)
+    return Token(*typeval, pos)
+
+def _postprocess(tokens: Iterable[T.TokenInfo]):
+    outtokens: list[Token] = list()
+
+    for token in tokens:
+        tk = _map_token(token)
+
+        if (tk.type, tk.value) == (TT.OPERATOR, '{'):
+            pass
+            
+
+# %%
 
 
 def _postproc_tokens(tokens: Iterable[Token]):
-    out_tokens = list()
+    out_tokens: list[Token] = list()
     code = list()
     store = False
     pos = tuple()
     for token in tokens:
 
-        if token.type == TokenType.LBRACE:
+        if token.type == TT.OPERATOR and token.value == '{':
             store = True
             pos = token.position
             continue
 
-        if token.type == TokenType.RBRACE:
+        if token.type == TT.OPERATOR and token.value == '}':
             out_tokens.append(Token(TokenType.EXPR, ' '.join(code), pos))
             store = False
             code.clear()
@@ -92,12 +119,12 @@ def _postproc_tokens(tokens: Iterable[Token]):
 
 
 @singledispatch
-def tokenize(code, raw=False) -> Generator[Token, None, None]:
+def tokenize(code: Union[str, TextIOBase], raw=False) -> Generator[Union[Token, T.TokenInfo], None, None]:
     raise TypeError('code must be a str or TextIOBase.')
 
 
 @tokenize.register
-def tokenize_str(code: str, raw=False) -> Generator[Token, None, None]:
+def tokenize_str(code: str, raw: bool = False):
     if raw:
         return _tokens(code)
 
@@ -105,8 +132,14 @@ def tokenize_str(code: str, raw=False) -> Generator[Token, None, None]:
 
 
 @tokenize.register
-def tokenize_file(file: TextIOBase, raw=False) -> Generator[Token, None, None]:
+def tokenize_file(file: TextIOBase, raw: bool = False):
     code = file.read()
     return tokenize(code, raw)
+
+
+# %%
+tkns = []
+with open('test2.zds', 'r') as f:
+    tkns = list(tokenize_file(f, True))
 
 # %%

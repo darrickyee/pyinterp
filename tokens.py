@@ -2,6 +2,22 @@ from enum import Enum, auto
 from typing import NamedTuple, Any
 
 
+class AstNodeType(Enum):
+    LABEL = auto()
+    GOTO = auto()
+    LINE = auto()
+    CHOICE = auto()
+    CHOICES = auto()
+    CODE = auto()
+    MAP = auto()
+    EXPR = auto()
+    IF = auto()
+    BLOCK = auto()
+    TAGS = auto()
+    INVALID = auto()
+    END = auto()
+    TAIL = auto()
+
 class InstructionType(Enum):
     OP_RETURN = auto()
     OP_EXPR = auto()
@@ -13,15 +29,18 @@ class InstructionType(Enum):
     LABEL = auto()
     EXEC_GOTO = auto()
     EXEC_TAGS = auto()
+    ADD_OPTION = auto()
+    EXEC_OPTIONS = auto()
 
 
-class TokenType(Enum):
+class TokenTypeOld(Enum):
     LABEL = auto()
     GOTO = auto()
     LINE = auto()
-    OPTION = auto()
+    CHOICE = auto()
     CODE = auto()
     MAP = auto()
+    AS = auto()
     EXPR = auto()
     IF = auto()
     STRING = auto()
@@ -44,6 +63,16 @@ class TokenType(Enum):
     UNKNOWN = auto()
     EMPTY = auto()
 
+class TokenType(Enum):
+    CONSTANT = auto()
+    OPERATOR = auto()
+    STATEMENT = auto()
+    NAME = auto()
+    INDENT = auto()
+    DEDENT = auto()
+    NEWLINE = auto()
+    END = auto()
+    UNKNOWN = auto()
 
 class Token(NamedTuple):  # pylint: disable=inherit-non-class
     type: TokenType

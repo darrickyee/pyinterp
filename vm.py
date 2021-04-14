@@ -49,7 +49,7 @@ METHODS = {
 class VM:
 
     def __init__(self) -> None:
-        self.chunk: list[tuple[I, tuple]] = list()
+        self.chunk: list[tuple[IType, tuple]] = list()
         self._ip: int = 0
         self._lastip: int = -1
         self.valuestack: list = list()
@@ -73,7 +73,7 @@ class VM:
     def run(self):
         while self._lastip != self.ip and self.ip < len(self.chunk):
             self._lastip = self.ip
-            instr = self.chunk[self.ip]
+            instr = self.chunk[self.ip][0]
             # print(instr)
             if METHODS.get(instr[0], None):
                 fn = getattr(self, METHODS[instr[0]])
@@ -86,7 +86,7 @@ class VM:
     def goto(self, label: str):
         idx = self.ip + 1
         try:
-            idx = self.chunk.index((IType.BLOCK, (label, ))) + 1
+            idx = self.chunk.index((IType.LABEL, (label, ))) + 1
         except ValueError:
             pass
 
@@ -132,7 +132,7 @@ C = [
     (IType.EXEC_LINE, ()),
     (IType.OP_EXPR, ('not met',)),
     (IType.OP_JUMP_FALSE, (5, )),
-    (IType.BLOCK, ('mylabel', )),
+    (IType.LABEL, ('mylabel', )),
     (IType.OP_EXPR, ('"Player"',)),
     (IType.OP_EXPR, ('"Not bad."',)),
     (IType.EXEC_LINE, ())

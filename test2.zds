@@ -1,3 +1,8 @@
+if a.b == 2 == true == 4.5:
+    print(x)
+    q = {'a': 23}
+
+
 label mylabel
 @mylabel if {shit}
 @ mylabel ['hi' 'ok']
