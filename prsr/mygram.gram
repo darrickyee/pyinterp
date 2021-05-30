@@ -1,0 +1,69 @@
+@subheader '''
+from prsr.parseinit import (
+    flatten,
+    get_str,
+    Cond,
+    PyExec,
+    PyExpr,
+    Section,
+    Line,
+    Choice,
+    Goto
+)
+'''
+start:  statements ENDMARKER { Section(None, statements) }
+
+statements: a=statement* { flatten(a) }
+
+statement:
+    | c=py_expr s=lang_stmt { Cond(c, body=s) }
+    | c=py_expr NEWLINE s=block { Cond(c, body=s) }
+    | lang_stmt { lang_stmt }
+
+lang_stmt: s=(section_stmt | line_stmt | code_stmt | choice_stmt | goto_stmt) { s }
+
+section_stmt: ('section' | '==' '=') section_label NEWLINE body=block? { Section(section_label, body=body) }
+
+section_label: a='.'.NAME+ { '.'.join(n.string for n in a) }
+
+line_stmt: ('line' | '-') a=STRING NEWLINE body=block? { Line(get_str(a), body=body) }
+
+code_stmt: 
+    | ('code' | '$') a=py_token_str* NEWLINE { PyExec(' '.join(a)) }
+    | ('code' | '$') NEWLINE i=INDENT py_block DEDENT { PyExec(''.join(line[len(i.string):] for line in py_block)) }
+
+choice_stmt: ('choice' | '*') a=STRING NEWLINE body=block? { Choice(a, body=body) }
+
+goto_stmt:
+    | ('goto' | '->') section_label NEWLINE { Goto(section_label) }
+    | ('goto' | '->') py_expr NEWLINE { Goto(py_expr) }
+
+block[list]: INDENT a=statements DEDENT { a }
+
+# Python code
+# py_code[str]: 
+#     | ('script' | '$') ':' NEWLINE i=INDENT py_block DEDENT { PyExec(''.join(line[len(i.string):] for line in py_block)) }
+#     | ('script' | '$') !':' a=(NAME | NUMBER | STRING | OP)+ NEWLINE { PyExec(' '.join(item.string for item in flatten(a))) }
+py_block[list]:
+    | py_line py_block { py_line + py_block }
+    | py_line { py_line }
+py_line[str]:
+    | INDENT py_block DEDENT { py_block }
+    | a=(NAME | NUMBER | STRING | OP) (NAME | NUMBER | STRING | OP)* NEWLINE { [a[0].line] }
+
+
+# # Inline expressions
+py_expr[str]: '{' py_terms '}' { PyExpr(py_terms) }
+py_terms[str]: 
+    | py_term py_terms { py_term + ' ' + py_terms }
+    | py_term { py_term }
+py_term[str]:
+    | '{' ~ a=py_terms? '}' { "{" + (a or "") + "}" }
+    | py_value_str { py_value_str }
+    | !'}' OP { op.string }
+py_token_str: (py_value_str | py_op_str)
+py_value_str[str]:
+    | NAME { name.string }
+    | NUMBER { number.string }
+    | STRING { string.string }
+py_op_str[str]: OP { op.string }

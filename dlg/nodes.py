@@ -1,0 +1,4 @@
+
+class DlgNode:
+
+    pass

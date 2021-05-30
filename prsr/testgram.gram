@@ -1,0 +1,2 @@
+start: a=stmt* { a }
+stmt: STRING b=NAME? NEWLINE {string.string + (b.string if b else '')}

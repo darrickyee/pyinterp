@@ -5,6 +5,7 @@ from functools import singledispatch
 from io import TextIOBase
 from typing import Generator, Iterable, Union
 from tokens import Token, TokenType as TT
+
 # %%
 
 _BUILTINS: dict[tuple[int, str], str] = {
@@ -142,4 +143,32 @@ tkns = []
 with open('test2.zds', 'r') as f:
     tkns = list(tokenize_file(f, True))
 
+# %%
+
+def get_expr(tokens: list[T.TokenInfo]):
+    strings = list()
+    level = 1
+
+    while level:
+        strings.append(tokens.pop(0).string)
+        level += 1 if strings[-1] == '{' else -1 if strings[-1] == '}' else 0
+
+    return ('EXPR', ' '.join(strings[:-1]))
+        
+
+
+def process(tokens: list[T.TokenInfo]):
+    _tokens = tokens.copy()
+    out_tokens = list()
+
+    while _tokens:
+        curr_token = _tokens.pop(0)
+        out_tokens.append(get_expr(_tokens) if curr_token.string == '{' else curr_token)
+
+    return out_tokens
+
+# %%
+codestr = 'line "Nora":\n\t {x < 234 and f"hi {player}"}'
+
+process(list(_tokens(codestr)))
 # %%

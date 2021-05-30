@@ -1,0 +1,12 @@
+=== START
+
+    - "What shall we do?"
+
+
+    * "Let's do A."
+        -> Do.A
+    * "Let's do B."
+        -> {'.'.join('Do', 'B')}
+    {j==4} * "Nothing."
+
+    - "Ok, goodbye then!"

@@ -1,0 +1,413 @@
+[
+  {
+    "nodes": [
+      {
+        "next": "1374898",
+        "node_name": "START",
+        "node_type": "start",
+        "title": ""
+      },
+      {
+        "branches": { "False": "671063", "True": "2399617" },
+        "node_name": "1374898",
+        "node_type": "condition_branch",
+        "text": "MSG.var(\"already_met\")",
+        "title": "Condition Branch"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": null,
+        "node_name": "1620009",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "This is a [color=yellow]secret message[/color]... Shhhh...",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "branches": { "1": "6061566", "2": "1620009" },
+        "chance_1": 95,
+        "chance_2": 5,
+        "node_name": "2399617",
+        "node_type": "chance_branch",
+        "title": "Chance Branch"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "7342037",
+        "node_name": "1350101",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Hi. I'm Jane. Nice to meet you.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": null,
+        "node_name": "6061566",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "We've already met, you should talk to others.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "1823984",
+        "node_name": "7342037",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "I speak using boxes.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "branches": { "False": "1350101", "True": "9416496" },
+        "node_name": "1184004",
+        "node_type": "condition_branch",
+        "text": "G.talked_to_mark",
+        "title": "Condition Branch"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "7342037",
+        "node_name": "9416496",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Hi. I'm Jane, as you already know.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "3940134",
+        "node_name": "1823984",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "[u]Classic[/u] [b]box messages[/b] are [b]cool[/b] because you can use all kinds of [i]text effects[/i].",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "5060303",
+        "node_name": "3940134",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "As well as pauses.|.|.| J- ||just like that! |||| Ekhm.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "9404279",
+        "node_name": "6029156",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Too bad, you have to.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "node_name": "9404279",
+        "node_type": "execute",
+        "text": "G.show_fireworks()",
+        "title": "Execute"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "3623836",
+        "node_name": "5060303",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "And [color=#A8D9FF]colors[/color] [color=yellow]as[/color] [color=red]well[/color]!",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "7096929",
+        "node_name": "3623836",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "You can easily customize both boxes and bubbles.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "9404279",
+        "node_name": "5985505",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Awesome! Look!",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "7178620",
+        "node_name": "1628446",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Cool, isn't it? You can call functions from the dialogue.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "branches": { "False": "1628446", "True": "7178620" },
+        "node_name": "6221194",
+        "node_type": "condition_branch",
+        "text": "MSG.var(\"seen_fireworks\")",
+        "title": "Condition Branch"
+      },
+      {
+        "next": "6221194",
+        "node_name": "2147836",
+        "node_type": "wait",
+        "time": 1,
+        "title": "Wait"
+      },
+      {
+        "character": ["Player", 0],
+        "file": "",
+        "is_box": false,
+        "next": "2774956",
+        "node_name": "4287118",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Nah, I'm fine.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "next": "8543828",
+        "node_name": "3539587",
+        "node_type": "set_local_variable",
+        "operation_type": "SET",
+        "title": "Set Local Variable",
+        "toggle": false,
+        "value": true,
+        "var_name": "already_met"
+      },
+      {
+        "node_name": "8543828",
+        "node_type": "execute",
+        "text": "G.set(\"talked_to_jane\", true)",
+        "title": "Execute"
+      },
+      {
+        "character": ["Jane", 2],
+        "file": "",
+        "is_box": true,
+        "next": "3539587",
+        "node_name": "2774956",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Cool. You should talk to the others now.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Player", 0],
+        "file": "",
+        "is_box": false,
+        "next": "1184004",
+        "node_name": "671063",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Hi.",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "choices": [
+          {
+            "condition": "",
+            "is_condition": false,
+            "next": "9404279",
+            "text": {
+              "ENG": "Yes.",
+              "FR": "Choix.",
+              "JPN": "",
+              "PL": "",
+              "RUS": "Выбор"
+            }
+          },
+          {
+            "condition": "",
+            "is_condition": false,
+            "next": "4287118",
+            "text": {
+              "ENG": "No.",
+              "FR": "Choix.",
+              "JPN": "",
+              "PL": "",
+              "RUS": "Выбор"
+            }
+          }
+        ],
+        "file": "",
+        "is_box": true,
+        "node_name": "7178620",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Do you want to see them again?",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      },
+      {
+        "character": ["Jane", 2],
+        "choices": [
+          {
+            "condition": "",
+            "is_condition": false,
+            "next": "5985505",
+            "text": {
+              "ENG": "Yes!",
+              "FR": "Choix.",
+              "JPN": "",
+              "PL": "",
+              "RUS": "Выбор"
+            }
+          },
+          {
+            "condition": "",
+            "is_condition": false,
+            "next": "6029156",
+            "text": {
+              "ENG": "Nope.",
+              "FR": "Choix.",
+              "JPN": "",
+              "PL": "",
+              "RUS": "Выбор"
+            }
+          }
+        ],
+        "file": "",
+        "is_box": true,
+        "node_name": "7096929",
+        "node_type": "show_message",
+        "object_path": "",
+        "slide_camera": true,
+        "speaker_type": 0,
+        "text": {
+          "ENG": "Ok... || Want to see something cool?",
+          "FR": "Ceci est un exemple de texte en français.",
+          "RUS": "Это пример текста на русском языке."
+        },
+        "title": "Show Message"
+      }
+    ],
+    "variables": {
+      "already_met": { "type": 2, "value": false },
+      "seen_fireworks": { "type": 2, "value": false }
+    }
+  }
+]
