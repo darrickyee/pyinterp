@@ -84,49 +84,24 @@ def genprs(path: str):
 
 
 gn = genprs('prsr/mygram.gram')
-# gn = genprs('prsr/testgram.gram')
 
-# %%
 
-test_script = """
-# Script statement
-=== Simple
-
-{x} choice '4'
-
-=== Block
-    {j==4} - 'hello'
-
-        * 'Say \\'hello\\' back.'
-    * 'Leave.'
-        - "I'M LEAVING"
-        - 'Go somewhere'
-
-    {x==4}
-        choice 'ffs'
-        - 'Ok then'
-
-    -> jj
-    -> {'Simple' if x else 'Block'}
-
-"""
 # %%
 
 with open('prsr/dlgtest.txt', 'r') as scr:
     res = run_parser(scr, gn, verbose=True)
     print('\n')
-    pprint(res)
+    print(ast.dump(res, indent=2))
 # %%
-mycode = '''
-def addx(x):
-    def _add(y):
-        return x + y
 
-    return _add
 
-add5 = addx(5)
-add2 = addx(2)
-add2(2) * add5(2)
-'''
-pprint(ast.dump(ast.parse(mycode)))
+def price(payment: int, hoa: int = 250, down: int = 20, rate: float = 3.25, exempt=True):
+    vm = 100 / (100 - down)
+    mp = payment - hoa + (3250/12 if exempt else 0)
+    mtax_rt = vm * (.9) * .01019 / 12
+    mint_rt = rate / 1200
+    tot_mult = (1 + mint_rt)**360
+    fac = (mint_rt * tot_mult) / (tot_mult - 1)
+    return mp / (fac + mtax_rt) * vm
+
 # %%

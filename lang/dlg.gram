@@ -1,5 +1,5 @@
 @subheader '''
-from prsr.parseinit import (
+from .parseinit import (
     flatten,
     get_str,
     Cond,
@@ -24,7 +24,7 @@ lang_stmt: s=(section_stmt | line_stmt | code_stmt | choice_stmt | goto_stmt) { 
 
 section_stmt: ('section' | '==' '=') section_label NEWLINE body=block? { Section(section_label, body=body) }
 
-section_label: a='.'.NAME+ { '.'.join(n.string for n in a) }
+section_label: a='.'.NAME+ { [n.string for n in a] }
 
 line_stmt: ('line' | '-') a=STRING NEWLINE body=block? { Line(get_str(a), body=body) }
 
@@ -32,7 +32,7 @@ code_stmt:
     | ('code' | '$') a=py_token_str* NEWLINE { PyExec(' '.join(a)) }
     | ('code' | '$') NEWLINE i=INDENT py_block DEDENT { PyExec(''.join(line[len(i.string):] for line in py_block)) }
 
-choice_stmt: ('choice' | '*') a=STRING NEWLINE body=block? { Choice(a, body=body) }
+choice_stmt: ('choice' | '*') a=STRING NEWLINE body=block? { Choice(a.string, body=body) }
 
 goto_stmt:
     | ('goto' | '->') section_label NEWLINE { Goto(section_label) }

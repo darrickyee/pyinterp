@@ -22,19 +22,19 @@ def get_str(s):
 
 class Statement(ast.AST):
 
-    PROPS = ('body')
+    _fields = ('body')
 
     def __init__(self, body=None):
         self.body = body or []
 
     def __repr__(self):
-        props = (f'{k}={str_val(getattr(self, k))}' for k in self.PROPS)
+        props = (f'{k}={str_val(getattr(self, k))}' for k in self._fields)
         return f'{self.__class__.__name__}({", ".join(props)})'
 
 
 class Section(Statement):
 
-    PROPS = ('label', 'body')
+    _fields = ('label', 'body')
 
     def __init__(self, label, body):
         super().__init__(body=body)
@@ -43,7 +43,7 @@ class Section(Statement):
 
 class Line(Statement):
 
-    PROPS = ('text', 'body')
+    _fields = ('text', 'body')
 
     def __init__(self, text, body):
         super().__init__(body=body)
@@ -52,7 +52,7 @@ class Line(Statement):
 
 class Choice(Statement):
 
-    PROPS = ('text', 'body')
+    _fields = ('text', 'body')
 
     def __init__(self, text, body):
         super().__init__(body=body)
@@ -61,7 +61,7 @@ class Choice(Statement):
 
 class Cond(Statement):
 
-    PROPS = ('code', 'body')
+    _fields = ('code', 'body')
 
     def __init__(self, code, body=None):
         super().__init__(body=body)
@@ -70,7 +70,7 @@ class Cond(Statement):
 
 class Goto(Statement):
 
-    PROPS = ('label',)
+    _fields = ('label',)
 
     def __init__(self, label):
         super().__init__(body=None)
@@ -79,7 +79,7 @@ class Goto(Statement):
 
 class PyExec(Statement):
 
-    PROPS = ('code')
+    _fields = ('code')
 
     def __init__(self, code):
         super().__init__(body=None)
@@ -87,6 +87,8 @@ class PyExec(Statement):
 
 
 class PyExpr(ast.AST):
+
+    _fields = ('code')
 
     def __init__(self, code: str) -> None:
         self.code = code
